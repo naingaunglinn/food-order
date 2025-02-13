@@ -11,7 +11,12 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        red: '#ED1C24',
+        gray: '#E0E0E0'
       },
+      fontFamily: {
+        rubik: ['var(--font--rubik)'],
+      }
     },
   },
   plugins: [],
