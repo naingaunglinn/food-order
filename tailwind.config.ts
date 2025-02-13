@@ -12,7 +12,9 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
         red: '#ED1C24',
-        gray: '#E0E0E0'
+        gray: '#E0E0E0',
+        blue: '#0047BB',
+        'blue-link': '#0042EC'
       },
       fontFamily: {
         rubik: ['var(--font--rubik)'],
