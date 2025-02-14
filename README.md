@@ -12,6 +12,9 @@ git clone https://github.com/naingaunglinn/food-order.git
 cd food-order
 
 npm install 
+```
+``` bash
+create .env.local # ask project owner for credential
 
 npm run dev
 ```
