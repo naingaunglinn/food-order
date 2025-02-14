@@ -1,8 +1,9 @@
 'use client'
 import Image from "next/image";
 import Modal from "./components/Modal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "./header";
+import { fetchCategories, fetchItems } from "@/utils/api";
 
 interface Category {
   id: number;
@@ -25,29 +26,26 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
   const [cart, setCart] = useState<Item[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
 
+
+  useEffect(() => {
+    // Fetch data when the component mounts
+    fetchCategories().then(setCategories);
+    fetchItems().then(setItems);
+  }, []);
+  
+  console.log(categories, items, selectedCategoryId);
+  
   // Track quantities before adding to cart
   const [itemQuantities, setItemQuantities] = useState<Record<number, number>>({});
-
-  const categories: Category[] = [
-    { id: 1, image: '/yogurt.svg', name: 'Yogurt' },
-    { id: 2, image: '/bubble-tea.svg', name: 'Bubble Tea' },
-    { id: 3, image: '/coffee.svg', name: 'Coffee' },
-    { id: 4, image: '/smoothie.svg', name: 'Smoothie' },
-    { id: 5, image: '/soda.svg', name: 'Soda' },
-    { id: 6, image: '/fruit-juice.svg', name: 'Fruit' },
-  ];
-
-  const items: Item[] = [
-    { id: 1, name: 'Passion Yogurt', price: 5000, description: 'Natural fermented yogurt from pure fresh milk and passion fruit....', image: '/item-1-image.png', stock: 10, category_id: 1 },
-    { id: 2, name: 'Taro Bubble Tea', price: 5500, description: 'Creamy taro bubble tea with fresh tapioca pearls....', image: '/item-1-image.png', stock: 8, category_id: 2 },
-    { id: 3, name: 'Espresso Coffee', price: 4500, description: 'Rich and bold espresso shot, freshly brewed....', image: '/item-1-image.png', stock: 12, category_id: 3 },
-    { id: 4, name: 'Berry Smoothie', price: 6000, description: 'Fresh mixed berry smoothie with natural ingredients....', image: '/item-1-image.png', stock: 6, category_id: 4 }
-  ];
 
   const filteredItems: Item[] = selectedCategoryId 
     ? items.filter(item => item.category_id === selectedCategoryId) 
     : items;
+
+  console.log(filteredItems);
 
   // Adjust quantity for a specific item before adding to cart
   const handleQuantityChangeBeforeAdd = (itemId: number, action: 'increase' | 'decrease'): void => {
@@ -89,6 +87,44 @@ export default function Home() {
   const getTotalPrice = (): number => {
     return cart.reduce((total, item) => total + (item.price * (item.quantity || 1)), 0);
   };
+
+  const handleCheckout = async () => {
+    if (cart.length === 0) return;
+  
+    const orderData = {
+      products: cart.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+      })),
+      total_price: getTotalPrice(),
+    };
+  
+    try {
+      const response = await fetch("http://localhost:8000/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to place order");
+      }
+  
+      const result = await response.json();
+      console.log("Order placed successfully:", result);
+  
+      // Clear the cart after successful order placement
+      setCart([]);
+      setIsOpen(false);
+      alert("Order placed successfully!");
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("Failed to place order.");
+    }
+  };
+  
 
   return (
     <div className="font-[family-name:var(--font-noto-sans)]">

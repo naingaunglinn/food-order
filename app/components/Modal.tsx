@@ -49,17 +49,17 @@ const Modal = ({ isOpen, onClose, children  }: ModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/10 backdrop-blur-sm z-50" onClick={onClose}>
+    <div className="fixed inset-0 flex items-center text-black justify-center bg-black/10 backdrop-blur-sm z-50" onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -50 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white p-6 rounded-lg shadow-lg max-w-md w-[90%] mx-auto"
+        className="bg-white relative p-6  rounded-lg shadow-lg max-w-md w-[90%] mx-auto"
       >
         {/* Close Button */}
-        <button className="text-gray-600 hover:text-gray-800" onClick={onClose}>
+        <button className="absolute right-6 text-gray hover:text-gray" onClick={onClose}>
           <Image
             aria-hidden
             src="/exit.svg"
@@ -75,7 +75,7 @@ const Modal = ({ isOpen, onClose, children  }: ModalProps) => {
 
         <div className="my-14 w-[231px] mx-auto">
           {/* Input Field */}
-          <div className="flex items-center border-2 border-gray-300 w-[231px] mx-auto p-3 rounded-md ">
+          <div className="flex items-center border-2 border-gray w-[231px] mx-auto p-3 rounded-md ">
             <Image
               aria-hidden
               src="/phone.svg"
