@@ -28,6 +28,7 @@ export default function Home() {
   const [cart, setCart] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 
   useEffect(() => {
@@ -155,7 +156,7 @@ export default function Home() {
           >
             <Image
               aria-hidden
-              src={category.image}
+              src={`http://localhost/storage/${category.image}`}
               className="align-center w-auto"
               alt={`${category.name} icon`}
               width={28}
@@ -183,7 +184,7 @@ export default function Home() {
               <div className="col-span-1 row-span-1 justify-self-end">
                 <Image
                   aria-hidden
-                  src={item.image}
+                  src={`http://localhost/storage/${item.image}`}
                   className="alig-center"
                   alt={`${item.name} image`}
                   width={83}
