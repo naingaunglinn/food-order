@@ -61,7 +61,6 @@ export default function Home() {
   // Add to cart with adjusted quantity
   const handleAddToCart = (item: Item): void => {
     const quantity = itemQuantities[item.id] || 1; // Get the adjusted quantity for this item (default to 1 if none)
-
     const existingItem = cart.find(cartItem => cartItem.id === item.id);
     if (existingItem) {
       // If the item is already in the cart, update its quantity
@@ -74,6 +73,8 @@ export default function Home() {
       // Otherwise, add the item to the cart
       setCart([...cart, { ...item, quantity }]);
     }
+
+    console.log(cart, ':: cart');
   };
 
   // Adjust quantity in the cart after adding the item
@@ -99,9 +100,11 @@ export default function Home() {
       })),
       total_price: getTotalPrice(),
     };
+
+    console.log(cart,'::checkout cart');
   
     try {
-      const response = await fetch("http://localhost:8000/api/orders", {
+      const response = await fetch("http://localhost/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -241,7 +244,7 @@ export default function Home() {
           <div className="flex justify-between items-center">
             <span className="text-black font-bold text-[14px]">Total: ${getTotalPrice() / 100}</span>
             <button
-              onClick={() => setIsOpen(true)}
+              onClick={() => handleCheckout()}
               className="bg-red text-white py-2 px-6 rounded-full"
             >
               Checkout
