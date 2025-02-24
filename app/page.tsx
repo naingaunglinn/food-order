@@ -4,6 +4,7 @@ import Modal from "./components/Modal";
 import { useEffect, useState } from "react";
 import Header from "./header";
 import { fetchCategories, fetchItems } from "@/utils/api";
+import { useRouter } from "next/navigation";
 
 interface Category {
   id: number;
@@ -28,15 +29,15 @@ export default function Home() {
   const [cart, setCart] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+  const router = useRouter();
 
   useEffect(() => {
     // Fetch data when the component mounts
     fetchCategories().then(setCategories);
     fetchItems().then(setItems);
   }, []);
-  
-  console.log(categories, items, selectedCategoryId);
   
   // Track quantities before adding to cart
   const [itemQuantities, setItemQuantities] = useState<Record<number, number>>({});
@@ -45,34 +46,32 @@ export default function Home() {
     ? items.filter(item => item.category_id === selectedCategoryId) 
     : items;
 
-  console.log(filteredItems);
-
   // Adjust quantity for a specific item before adding to cart
-  const handleQuantityChangeBeforeAdd = (itemId: number, action: 'increase' | 'decrease'): void => {
+  const handleQuantityChangeBeforeAdd = (item:Item, action: 'increase' | 'decrease'): void => {
     setItemQuantities(prev => {
-      const currentQuantity = prev[itemId] || 1; // Default to 1 if no quantity set yet
-      const newQuantity = action === 'increase' ? Math.min(currentQuantity + 1, 10) : Math.max(currentQuantity - 1, 1); // Min-max logic
+      const currentQuantity = prev[item.id] || 1; // Default to 1 if no quantity set yet
+      const newQuantity = action === 'increase' ? Math.min(currentQuantity + 1, item.stock) : Math.max(currentQuantity - 1, 1); // Min-max logic
 
-      return { ...prev, [itemId]: newQuantity }; // Update the quantity for this specific item
+      return { ...prev, [item.id]: newQuantity }; // Update the quantity for this specific item
     });
   };
 
   // Add to cart with adjusted quantity
   const handleAddToCart = (item: Item): void => {
     const quantity = itemQuantities[item.id] || 1; // Get the adjusted quantity for this item (default to 1 if none)
-
     const existingItem = cart.find(cartItem => cartItem.id === item.id);
     if (existingItem) {
       // If the item is already in the cart, update its quantity
       setCart(cart.map(cartItem => 
         cartItem.id === item.id 
-          ? { ...cartItem, quantity: cartItem.quantity! + quantity } 
+          ? { ...cartItem, quantity: quantity } 
           : cartItem
       ));
     } else {
       // Otherwise, add the item to the cart
       setCart([...cart, { ...item, quantity }]);
     }
+    console.log(cart, existingItem, quantity);
   };
 
   // Adjust quantity in the cart after adding the item
@@ -90,7 +89,7 @@ export default function Home() {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
-  
+    
     const orderData = {
       products: cart.map(item => ({
         id: item.id,
@@ -100,7 +99,7 @@ export default function Home() {
     };
   
     try {
-      const response = await fetch("http://localhost:8000/api/orders", {
+      const response = await fetch(`${API_URL}/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,11 +112,13 @@ export default function Home() {
       }
   
       const result = await response.json();
-      console.log("Order placed successfully:", result);
+
+      console.log(result);
   
       // Clear the cart after successful order placement
       setCart([]);
       setIsOpen(false);
+      router.push("/order-complete");
       alert("Order placed successfully!");
     } catch (error) {
       console.error("Error placing order:", error);
@@ -155,7 +156,7 @@ export default function Home() {
           >
             <Image
               aria-hidden
-              src={category.image}
+              src={`${APP_URL}/storage/${category.image}`}
               className="align-center w-auto"
               alt={`${category.name} icon`}
               width={28}
@@ -181,27 +182,19 @@ export default function Home() {
                 <p className="leading-[18px] text-[12px]">{item.description}</p>
               </div>
               <div className="col-span-1 row-span-1 justify-self-end">
-                <Image
-                  aria-hidden
-                  src={item.image}
-                  className="alig-center"
-                  alt={`${item.name} image`}
-                  width={83}
-                  height={90}
-                />
               </div>
               <div className="col-span-1 row-span-1 text-right">
                 {/* Quantity Adjustment Before Add */}
                 <div className="flex items-center justify-between">
                   <button
-                    onClick={() => handleQuantityChangeBeforeAdd(item.id, 'decrease')}
+                    onClick={() => handleQuantityChangeBeforeAdd(item, 'decrease')}
                     className="text-black bg-gray-500 px-2 py-1 rounded-full text-[12px]"
                   >
                     -
                   </button>
                   <span className="text-[14px]">{itemQuantities[item.id] || 1}</span>
                   <button
-                    onClick={() => handleQuantityChangeBeforeAdd(item.id, 'increase')}
+                    onClick={() => handleQuantityChangeBeforeAdd(item, 'increase')}
                     className="text-black bg-gray-500 px-2 py-1 rounded-full text-[12px]"
                   >
                     +
@@ -231,16 +224,16 @@ export default function Home() {
             {cart.map((item) => (
               <div key={item.id} className="flex justify-between items-center py-2 border-b">
                 <span className="text-black text-[14px]">{item.name}</span>
-                <span className="text-black text-[14px]">{item.quantity} pcs</span>
+                <span className="text-black text-[14px]">{item.quantity} pcs x {item.price} = {(item.quantity || 0) * item.price} MMK</span>
               </div>
             ))}
           </div>
 
           {/* Display total price and checkout button */}
           <div className="flex justify-between items-center">
-            <span className="text-black font-bold text-[14px]">Total: ${getTotalPrice() / 100}</span>
+            <span className="text-black font-bold text-[14px]">Total: {getTotalPrice()} MMK</span>
             <button
-              onClick={() => setIsOpen(true)}
+              onClick={() => handleCheckout()}
               className="bg-red text-white py-2 px-6 rounded-full"
             >
               Checkout
