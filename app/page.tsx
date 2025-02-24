@@ -4,6 +4,7 @@ import Modal from "./components/Modal";
 import { useEffect, useState } from "react";
 import Header from "./header";
 import { fetchCategories, fetchItems } from "@/utils/api";
+import { useRouter } from "next/navigation";
 
 interface Category {
   id: number;
@@ -29,7 +30,8 @@ export default function Home() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+  const router = useRouter();
 
   useEffect(() => {
     // Fetch data when the component mounts
@@ -97,7 +99,7 @@ export default function Home() {
     };
   
     try {
-      const response = await fetch("http://localhost/api/orders", {
+      const response = await fetch(`${API_URL}/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -116,6 +118,7 @@ export default function Home() {
       // Clear the cart after successful order placement
       setCart([]);
       setIsOpen(false);
+      router.push("/order-complete");
       alert("Order placed successfully!");
     } catch (error) {
       console.error("Error placing order:", error);
@@ -153,7 +156,7 @@ export default function Home() {
           >
             <Image
               aria-hidden
-              src={`http://localhost/storage/${category.image}`}
+              src={`${APP_URL}/storage/${category.image}`}
               className="align-center w-auto"
               alt={`${category.name} icon`}
               width={28}
@@ -179,14 +182,6 @@ export default function Home() {
                 <p className="leading-[18px] text-[12px]">{item.description}</p>
               </div>
               <div className="col-span-1 row-span-1 justify-self-end">
-                <Image
-                  aria-hidden
-                  src={`http://localhost/storage/${item.image}`}
-                  className="alig-center"
-                  alt={`${item.name} image`}
-                  width={83}
-                  height={90}
-                />
               </div>
               <div className="col-span-1 row-span-1 text-right">
                 {/* Quantity Adjustment Before Add */}
